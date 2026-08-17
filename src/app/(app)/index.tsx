@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,7 +16,7 @@ import { PriorityBadge, PriorityPicker } from '@/components/priority-badge';
 import { useToast } from '@/components/toast';
 import { UpgradeGate } from '@/components/upgrade-gate';
 import { Brand, Fonts, Radius, Spacing } from '@/constants/theme';
-import { useProfile } from '@/hooks/use-profile';
+import { useSharedProfile } from '@/contexts/profile-context';
 import { useTheme } from '@/hooks/use-theme';
 import { FREE_TODO_LIMIT, type Priority, type Todo, useTodos } from '@/hooks/use-todos';
 
@@ -230,7 +230,7 @@ function TodoItem({ todo, isPro, onToggle, onDelete, onEdit, onPriorityChange }:
 export default function TodoScreen() {
   const theme           = useTheme();
   const { showToast }   = useToast();
-  const { profile }     = useProfile();
+  const { profile }     = useSharedProfile();
   const router          = useRouter();
 
   const isPro  = profile?.plan === 'pro';

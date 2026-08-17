@@ -9,7 +9,7 @@ export interface Profile {
   plan: 'free' | 'pro';
 }
 
-interface UseProfileResult {
+export interface UseProfileResult {
   profile: Profile | null;
   loading: boolean;
   /** Call after a plan upgrade to refresh the profile row */

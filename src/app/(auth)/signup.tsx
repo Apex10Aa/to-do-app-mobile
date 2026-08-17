@@ -1,24 +1,23 @@
-import { Link, useRouter } from 'expo-router';
-import { useState } from 'react';
-import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { useToast } from '@/components/toast';
 import { Brand, Fonts, Radius, Spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { Link, useRouter } from 'expo-router';
+import { useState } from 'react';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ---------------------------------------------------------------------------
-// AuthInput
+// AuthInput — plain field (no toggle)
 // ---------------------------------------------------------------------------
 function AuthInput({
   label, value, onChangeText, placeholder,
@@ -46,7 +45,42 @@ function AuthInput({
 }
 
 // ---------------------------------------------------------------------------
-// Password strength
+// PasswordInput — with show/hide eye toggle + optional children (strength bar)
+// ---------------------------------------------------------------------------
+function PasswordInput({
+  label, value, onChangeText, placeholder, error, children,
+}: {
+  label: string; value: string; onChangeText: (v: string) => void;
+  placeholder?: string; error?: string; children?: React.ReactNode;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <View style={styles.fieldWrapper}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={[styles.inputRow, !!error && styles.inputRowError]}>
+        <TextInput
+          style={styles.inputInner}
+          value={value} onChangeText={onChangeText}
+          placeholder={placeholder} placeholderTextColor="rgba(200,190,250,0.4)"
+          secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false}
+          accessibilityLabel={label}
+        />
+        <Pressable
+          onPress={() => setVisible(v => !v)}
+          style={styles.eyeBtn}
+          accessibilityRole="button"
+          accessibilityLabel={visible ? 'Hide password' : 'Show password'}>
+          <Text style={styles.eyeText}>{visible ? '○' : '●'}</Text>
+        </Pressable>
+      </View>
+      {children}
+      {!!error && <Text style={styles.errorText}>{error}</Text>}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Password strength indicator
 // ---------------------------------------------------------------------------
 function PasswordStrength({ password }: { password: string }) {
   const checks = [password.length >= 8, /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)];
@@ -120,7 +154,6 @@ export default function SignupScreen() {
         return;
       }
 
-      // If email confirmation is required, session will be null
       if (data.session) {
         showToast('Account created! Welcome 🎉', 'success');
         router.replace('/(app)');
@@ -146,22 +179,31 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.card}>
-            <AuthInput label="Full Name"  value={fullName} onChangeText={v => { setFullName(v); clearField('fullName'); }} placeholder="Jane Doe" autoCapitalize="words" error={fieldErrors.fullName} />
-            <AuthInput label="Email"      value={email}    onChangeText={v => { setEmail(v);    clearField('email');    }} placeholder="you@example.com" keyboardType="email-address" error={fieldErrors.email} />
-
-            <View style={styles.fieldWrapper}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={[styles.input, !!fieldErrors.password && styles.inputError]}
-                value={password} onChangeText={v => { setPassword(v); clearField('password'); }}
-                placeholder="Min. 8 characters" placeholderTextColor="rgba(200,190,250,0.4)"
-                secureTextEntry autoCapitalize="none" autoCorrect={false} accessibilityLabel="Password"
-              />
+            <AuthInput
+              label="Full Name" value={fullName}
+              onChangeText={v => { setFullName(v); clearField('fullName'); }}
+              placeholder="Jane Doe" autoCapitalize="words"
+              error={fieldErrors.fullName}
+            />
+            <AuthInput
+              label="Email" value={email}
+              onChangeText={v => { setEmail(v); clearField('email'); }}
+              placeholder="you@example.com" keyboardType="email-address"
+              error={fieldErrors.email}
+            />
+            <PasswordInput
+              label="Password" value={password}
+              onChangeText={v => { setPassword(v); clearField('password'); }}
+              placeholder="Min. 8 characters"
+              error={fieldErrors.password}>
               <PasswordStrength password={password} />
-              {!!fieldErrors.password && <Text style={styles.errorText}>{fieldErrors.password}</Text>}
-            </View>
-
-            <AuthInput label="Confirm Password" value={confirm} onChangeText={v => { setConfirm(v); clearField('confirm'); }} placeholder="Repeat password" secureTextEntry error={fieldErrors.confirm} />
+            </PasswordInput>
+            <PasswordInput
+              label="Confirm Password" value={confirm}
+              onChangeText={v => { setConfirm(v); clearField('confirm'); }}
+              placeholder="Repeat password"
+              error={fieldErrors.confirm}
+            />
 
             <Text style={styles.terms}>
               By signing up you agree to our{' '}
@@ -212,9 +254,17 @@ const styles = StyleSheet.create({
 
   fieldWrapper: { gap: Spacing.one },
   label:        { fontFamily: Fonts.semibold, fontSize: 13, color: Brand.lavenderTonic, letterSpacing: 0.3 },
-  input:        { fontFamily: Fonts.regular, height: 48, borderRadius: Radius.sm, borderWidth: 1, borderColor: '#2d2856', backgroundColor: '#151130', paddingHorizontal: Spacing.three, color: '#e4d9fd', fontSize: 15 },
-  inputError:   { borderColor: '#f07070' },
-  errorText:    { fontFamily: Fonts.regular, fontSize: 12, color: '#f07070', lineHeight: 16 },
+
+  input:       { fontFamily: Fonts.regular, height: 48, borderRadius: Radius.sm, borderWidth: 1, borderColor: '#2d2856', backgroundColor: '#151130', paddingHorizontal: Spacing.three, color: '#e4d9fd', fontSize: 15 },
+  inputError:  { borderColor: '#f07070' },
+
+  inputRow:      { flexDirection: 'row', alignItems: 'center', height: 48, borderRadius: Radius.sm, borderWidth: 1, borderColor: '#2d2856', backgroundColor: '#151130', paddingLeft: Spacing.three, paddingRight: Spacing.two },
+  inputRowError: { borderColor: '#f07070' },
+  inputInner:    { flex: 1, fontFamily: Fonts.regular, color: '#e4d9fd', fontSize: 15, height: '100%' },
+  eyeBtn:        { padding: Spacing.two, justifyContent: 'center', alignItems: 'center' },
+  eyeText:       { fontSize: 20, color: 'rgba(200,190,250,0.5)', lineHeight: 22 },
+
+  errorText: { fontFamily: Fonts.regular, fontSize: 12, color: '#f07070', lineHeight: 16 },
 
   terms:     { fontFamily: Fonts.regular, fontSize: 12, color: 'rgba(200,190,250,0.5)', lineHeight: 18, textAlign: 'center' },
   termsLink: { fontFamily: Fonts.semibold, color: Brand.lavenderTonic },

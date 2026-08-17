@@ -60,12 +60,12 @@ function AuthGuard({ authStatus }: { authStatus: AuthStatus }) {
 // Root layout
 // ---------------------------------------------------------------------------
 export default function RootLayout() {
-  const colorScheme  = useColorScheme();
-  const authStatus   = useAuthStatus();
-  const isAuth       = authStatus === 'authenticated';
+  const colorScheme = useColorScheme();
+  const authStatus  = useAuthStatus();
+  const isAuth      = authStatus === 'authenticated';
 
-  const [fontsLoaded, fontError]  = useFonts(FontAssets);
-  const [nativeHidden, setNativeHidden]  = useState(false);
+  const [fontsLoaded, fontError]          = useFonts(FontAssets);
+  const [nativeHidden, setNativeHidden]   = useState(false);
   const [appSplashDone, setAppSplashDone] = useState(false);
 
   const { isLocked, authFailed, unlock } = useBiometricLock(isAuth);
@@ -85,8 +85,8 @@ export default function RootLayout() {
   }
 
   const navTheme = colorScheme === 'dark'
-    ? { ...DarkTheme,    colors: { ...DarkTheme.colors,    background: Brand.championBlue, card: '#1e1a3a', border: '#2d2856', primary: Brand.lavenderTonic } }
-    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#f2effe',          card: '#ffffff', border: '#ddd6f8', primary: Brand.lavenderTonic } };
+    ? { ...DarkTheme,    colors: { ...DarkTheme.colors,    background: Brand.championBlue, card: '#1e1a3a',  border: '#2d2856', primary: Brand.lavenderTonic } }
+    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#f2effe',          card: '#ffffff',  border: '#ddd6f8', primary: Brand.lavenderTonic } };
 
   return (
     <ThemeProvider value={navTheme}>
@@ -94,7 +94,6 @@ export default function RootLayout() {
         <Slot />
         {appSplashDone && <AuthGuard authStatus={authStatus} />}
 
-        {/* Biometric lock overlay — sits above everything when triggered */}
         {isLocked && appSplashDone && isAuth && (
           <BiometricLockScreen
             authFailed={authFailed}
