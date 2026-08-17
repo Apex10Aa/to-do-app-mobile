@@ -1,3 +1,6 @@
+import { useToast } from '@/components/toast';
+import { Brand, Fonts, Radius, Spacing } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -13,12 +16,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useToast } from '@/components/toast';
-import { Brand, Fonts, Radius, Spacing } from '@/constants/theme';
-import { supabase } from '@/lib/supabase';
-
 // ---------------------------------------------------------------------------
-// AuthInput
+// AuthInput — plain field
 // ---------------------------------------------------------------------------
 function AuthInput({
   label, value, onChangeText, placeholder,
@@ -40,6 +39,40 @@ function AuthInput({
         keyboardType={keyboardType} autoCapitalize={autoCapitalize ?? 'none'}
         autoCorrect={false} accessibilityLabel={label}
       />
+      {!!error && <Text style={styles.errorText}>{error}</Text>}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PasswordInput — with show/hide toggle
+// ---------------------------------------------------------------------------
+function PasswordInput({
+  label, value, onChangeText, placeholder, error,
+}: {
+  label: string; value: string; onChangeText: (v: string) => void;
+  placeholder?: string; error?: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <View style={styles.fieldWrapper}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={[styles.inputRow, !!error && styles.inputRowError]}>
+        <TextInput
+          style={styles.inputInner}
+          value={value} onChangeText={onChangeText}
+          placeholder={placeholder} placeholderTextColor="rgba(200,190,250,0.4)"
+          secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false}
+          accessibilityLabel={label}
+        />
+        <Pressable
+          onPress={() => setVisible(v => !v)}
+          style={styles.eyeBtn}
+          accessibilityRole="button"
+          accessibilityLabel={visible ? 'Hide password' : 'Show password'}>
+          <Text style={styles.eyeText}>{visible ? '○' : '●'}</Text>
+        </Pressable>
+      </View>
       {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
@@ -96,10 +129,18 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.card}>
-            <AuthInput label="Email" value={email} onChangeText={v => { setEmail(v); setFieldErrors(p => ({ ...p, email: undefined })); }}
-              placeholder="you@example.com" keyboardType="email-address" error={fieldErrors.email} />
-            <AuthInput label="Password" value={password} onChangeText={v => { setPassword(v); setFieldErrors(p => ({ ...p, password: undefined })); }}
-              placeholder="••••••••" secureTextEntry error={fieldErrors.password} />
+            <AuthInput
+              label="Email" value={email}
+              onChangeText={v => { setEmail(v); setFieldErrors(p => ({ ...p, email: undefined })); }}
+              placeholder="you@example.com" keyboardType="email-address"
+              error={fieldErrors.email}
+            />
+            <PasswordInput
+              label="Password" value={password}
+              onChangeText={v => { setPassword(v); setFieldErrors(p => ({ ...p, password: undefined })); }}
+              placeholder="••••••••"
+              error={fieldErrors.password}
+            />
 
             <Link href="/(auth)/forgot-password" asChild>
               <Pressable style={styles.forgotBtn} accessibilityRole="link">
@@ -149,9 +190,17 @@ const styles = StyleSheet.create({
 
   fieldWrapper: { gap: Spacing.one },
   label:        { fontFamily: Fonts.semibold, fontSize: 13, color: Brand.lavenderTonic, letterSpacing: 0.3 },
-  input:        { fontFamily: Fonts.regular, height: 48, borderRadius: Radius.sm, borderWidth: 1, borderColor: '#2d2856', backgroundColor: '#151130', paddingHorizontal: Spacing.three, color: '#e4d9fd', fontSize: 15 },
-  inputError:   { borderColor: '#f07070' },
-  errorText:    { fontFamily: Fonts.regular, fontSize: 12, color: '#f07070', lineHeight: 16 },
+
+  input:       { fontFamily: Fonts.regular, height: 48, borderRadius: Radius.sm, borderWidth: 1, borderColor: '#2d2856', backgroundColor: '#151130', paddingHorizontal: Spacing.three, color: '#e4d9fd', fontSize: 15 },
+  inputError:  { borderColor: '#f07070' },
+
+  inputRow:      { flexDirection: 'row', alignItems: 'center', height: 48, borderRadius: Radius.sm, borderWidth: 1, borderColor: '#2d2856', backgroundColor: '#151130', paddingLeft: Spacing.three, paddingRight: Spacing.two },
+  inputRowError: { borderColor: '#f07070' },
+  inputInner:    { flex: 1, fontFamily: Fonts.regular, color: '#e4d9fd', fontSize: 15, height: '100%' },
+  eyeBtn:        { padding: Spacing.two, justifyContent: 'center', alignItems: 'center' },
+  eyeText:       { fontSize: 20, color: 'rgba(200,190,250,0.5)', lineHeight: 22 },
+
+  errorText: { fontFamily: Fonts.regular, fontSize: 12, color: '#f07070', lineHeight: 16 },
 
   forgotBtn:  { alignSelf: 'flex-end', marginTop: -Spacing.two },
   forgotText: { fontFamily: Fonts.medium, fontSize: 13, color: Brand.lavenderTonic },
@@ -160,7 +209,7 @@ const styles = StyleSheet.create({
   submitBtnDisabled: { opacity: 0.6 },
   submitText:        { fontFamily: Fonts.bold, color: Brand.championBlue, fontSize: 16, letterSpacing: 0.3 },
 
-  footer:      { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: Spacing.four },
-  footerText:  { fontFamily: Fonts.regular, color: 'rgba(200,190,250,0.55)', fontSize: 14 },
-  footerLink:  { fontFamily: Fonts.semibold, color: Brand.lavenderTonic, fontSize: 14 },
+  footer:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: Spacing.four },
+  footerText: { fontFamily: Fonts.regular, color: 'rgba(200,190,250,0.55)', fontSize: 14 },
+  footerLink: { fontFamily: Fonts.semibold, color: Brand.lavenderTonic, fontSize: 14 },
 });

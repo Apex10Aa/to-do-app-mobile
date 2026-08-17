@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PaystackModal } from '@/components/paystack-modal';
 import { useToast } from '@/components/toast';
 import { Brand, Fonts, Radius, Spacing } from '@/constants/theme';
-import { useProfile } from '@/hooks/use-profile';
+import { useSharedProfile } from '@/contexts/profile-context';
 import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 
@@ -74,7 +74,7 @@ export default function ProfileScreen() {
   const router              = useRouter();
   const theme               = useTheme();
   const { showToast }       = useToast();
-  const { profile, loading, refresh } = useProfile();
+  const { profile, loading, refresh, refreshTransactions } = useSharedProfile();
 
   const [showPaystack,  setShowPaystack]  = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -94,6 +94,7 @@ export default function ProfileScreen() {
   function handleUpgradeSuccess() {
     setShowPaystack(false);
     refresh();
+    refreshTransactions();
     showToast('Welcome to Pro! 🎉', 'success');
   }
 

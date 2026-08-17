@@ -2,9 +2,9 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Brand, Fonts, Radius, Spacing } from '@/constants/theme';
-import { useProfile } from '@/hooks/use-profile';
-import { useTransactions, type Transaction } from '@/hooks/use-transactions';
+import { useSharedProfile } from '@/contexts/profile-context';
 import { useTheme } from '@/hooks/use-theme';
+import { type Transaction } from '@/hooks/use-transactions';
 
 // ---------------------------------------------------------------------------
 // Status chip
@@ -77,11 +77,8 @@ const row = StyleSheet.create({
 // Screen
 // ---------------------------------------------------------------------------
 export default function TransactionsScreen() {
-  const theme                       = useTheme();
-  const { profile, loading: pLoad } = useProfile();
-  const { transactions, loading }   = useTransactions(profile?.id);
-
-  const isLoading = pLoad || loading;
+  const theme                                          = useTheme();
+  const { transactions, transactionsLoading: loading } = useSharedProfile();
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -95,7 +92,7 @@ export default function TransactionsScreen() {
           </Text>
         </View>
 
-        {isLoading ? (
+        {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={Brand.lavenderTonic} />
           </View>
